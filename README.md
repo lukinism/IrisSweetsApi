@@ -13,7 +13,7 @@
 
 ```bash
 # Клонируйте репозиторий
-git clone [https://github.com/lukinism/IrisSweetsApi](https://github.com/lukinism/IrisSweetsApi.git)
+git clone https://github.com/lukinism/IrisSweetsApi.git
 cd IrisSweetsLibrary
 
 # Установите зависимости
