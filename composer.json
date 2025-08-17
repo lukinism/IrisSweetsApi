@@ -1,5 +1,5 @@
 {
-  "name": "lukinism/iris-sweets-api",
+  "name": "lukinism/iris-sweets-library",
   "description": "PHP библиотека для работы с API Iris Sweets",
   "type": "library",
   "require": {
