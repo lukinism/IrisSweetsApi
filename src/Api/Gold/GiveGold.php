@@ -16,13 +16,13 @@ class GiveGold extends AbstractApi
     /**
      * Выдать голду пользователю
      * 
-     * @param int|float $gold Количество голды для отправки
+     * @param int $gold Количество голды для отправки
      * @param int $userId ID пользователя
      * @param string $comment Комментарий к отправке
      * @return array Ответ от API {"response":true} при успехе, {"response":false} при неудаче
  * @throws ApiException При ошибке запроса или неверных параметрах
      */
-    public function give(int|float $gold, int $userId, string $comment = ''): array
+    public function give(int $gold, int $userId, string $comment = ''): array
     {
         if ($gold <= 0) {
             throw new ApiException('Количество голды должно быть больше 0');
