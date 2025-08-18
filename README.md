@@ -13,8 +13,8 @@
 
 ```bash
 # Клонируйте репозиторий
-git clone https://github.com/your-username/iris-sweets-library.git
-cd iris-sweets-library
+git clone https://github.com/lukinism/IrisSweetsApi.git
+cd IrisSweetsLibrary
 
 # Установите зависимости
 composer install
