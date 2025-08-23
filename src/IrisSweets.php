@@ -15,7 +15,7 @@ class IrisSweets
     private HttpClient $client;
     private Config $config;
 
-    public function __construct(?string $botId = null, ?string $irisToken = null, ?string $baseUrl = null)
+    public function __construct(?string $botId = null, ?string $irisToken = null, ?string $apiVersion = null)
     {
         $this->config = Config::getInstance();
 
@@ -25,8 +25,8 @@ class IrisSweets
         if ($irisToken !== null) {
             $this->config->set('IRIS_TOKEN', $irisToken);
         }
-        if ($baseUrl !== null) {
-            $this->config->set('IRIS_BASE_URL', $baseUrl);
+        if ($apiVersion !== null) {
+            $this->config->set('IRIS_API_VERSION', $apiVersion);
         }
 
         if (!$this->config->validate()) {
@@ -45,21 +45,37 @@ class IrisSweets
 
     public function balance(): Balance
     {
-        return new Balance($this->client, $this->config->getBotId(), $this->config->getIrisToken(), $this->config->getBaseUrl());
+        return new Balance($this->client, $this->config->getBotId(), $this->config->getIrisToken(), $this->config->getBaseUrl(), $this->config->getApiVersion());
     }
 
     public function sweets(): Sweets
     {
-        return new Sweets($this->client, $this->config->getBotId(), $this->config->getIrisToken(), $this->config->getBaseUrl());
+        return new Sweets($this->client, $this->config->getBotId(), $this->config->getIrisToken(), $this->config->getBaseUrl(), $this->config->getApiVersion());
     }
 
     public function gold(): Gold
     {
-        return new Gold($this->client, $this->config->getBotId(), $this->config->getIrisToken(), $this->config->getBaseUrl());
+        return new Gold($this->client, $this->config->getBotId(), $this->config->getIrisToken(), $this->config->getBaseUrl(), $this->config->getApiVersion());
     }
 
     public function pocket(): Pocket
     {
-        return new Pocket($this->client, $this->config->getBotId(), $this->config->getIrisToken(), $this->config->getBaseUrl());
+        return new Pocket($this->client, $this->config->getBotId(), $this->config->getIrisToken(), $this->config->getBaseUrl(), $this->config->getApiVersion());
+    }
+
+    /**
+     * Установить версию API для всех последующих запросов
+     */
+    public function setApiVersion(string $version): void
+    {
+        $this->config->setApiVersion($version);
+    }
+
+    /**
+     * Получить текущую версию API
+     */
+    public function getApiVersion(): string
+    {
+        return $this->config->getApiVersion();
     }
 }

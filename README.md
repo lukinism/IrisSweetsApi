@@ -36,12 +36,15 @@ IRIS_BOT_ID=your_bot_id_here
 
 # Токен
 IRIS_TOKEN=your_iris_token_here
+
+# Версия API (по умолчанию v100)
+IRIS_API_VERSION=v100
 ```
 
 ### Способ 2: Через параметры конструктора
 
 ```php
-$api = new IrisSweets($botId, $irisToken, $baseUrl);
+$api = new IrisSweets($botId, $irisToken, $apiVersion);
 ```
 
 ## 🔧 Использование
@@ -59,7 +62,20 @@ use IrisSweetsApi\Exception\ApiException;
 $api = new IrisSweets();
 
 // Или передайте параметры напрямую
-$api = new IrisSweets('your-bot-id', 'your-iris-token');
+$api = new IrisSweets('your-bot-id', 'your-iris-token', 'v0.1');
+```
+
+### 🌐 Версии API
+
+Библиотека поддерживает версионирование API. По умолчанию используется версия `v100`.
+
+```php
+// Установить версию API
+$api->setApiVersion('v0.1');
+
+// Получить текущую версию
+$currentVersion = $api->getApiVersion();
+echo "Текущая версия API: " . $currentVersion;
 ```
 
 ### 💰 Получение баланса
@@ -369,7 +385,3 @@ checkBalance();
 git pull origin main
 composer update
 ```
-
----
-
-**Сделано с ❤️ для сообщества Iris Чат-менеджер**

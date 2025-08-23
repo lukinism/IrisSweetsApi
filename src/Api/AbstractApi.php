@@ -13,14 +13,16 @@ abstract class AbstractApi
     protected string $baseUrl;
     protected string $botId;
     protected string $irisToken;
+    protected string $apiVersion;
     protected RetryHandler $retryHandler;
 
-    public function __construct(HttpClient $httpClient, string $botId = '', string $irisToken = '', string $baseUrl = 'https://iris-tg.ru/api/')
+    public function __construct(HttpClient $httpClient, string $botId = '', string $irisToken = '', string $baseUrl = 'https://iris-tg.ru/api/', string $apiVersion = 'v100')
     {
         $this->httpClient = $httpClient;
         $this->baseUrl = rtrim($baseUrl, '/');
         $this->botId = $botId;
         $this->irisToken = $irisToken;
+        $this->apiVersion = $apiVersion;
         $this->retryHandler = new RetryHandler();
     }
 
@@ -66,7 +68,7 @@ abstract class AbstractApi
     protected function buildUrl(string $method): string
     {
         $token = "{$this->botId}_{$this->irisToken}";
-        return "{$this->baseUrl}/{$token}/{$method}";
+        return "{$this->baseUrl}/{$token}/{$this->apiVersion}/{$method}";
     }
 
     /**
@@ -101,5 +103,21 @@ abstract class AbstractApi
     public function disableDebug(): void
     {
         $this->httpClient->setDebug(false);
+    }
+
+    /**
+     * Получить текущую версию API
+     */
+    public function getApiVersion(): string
+    {
+        return $this->apiVersion;
+    }
+
+    /**
+     * Установить версию API
+     */
+    public function setApiVersion(string $version): void
+    {
+        $this->apiVersion = $version;
     }
 }

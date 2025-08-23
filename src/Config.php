@@ -102,6 +102,22 @@ class Config
     }
 
     /**
+     * Получить версию API
+     */
+    public function getApiVersion(): string
+    {
+        return $this->get('IRIS_API_VERSION', 'v100');
+    }
+
+    /**
+     * Установить версию API
+     */
+    public function setApiVersion(string $version): void
+    {
+        $this->set('IRIS_API_VERSION', $version);
+    }
+
+    /**
      * Проверить, что все необходимые параметры установлены
      */
     public function validate(): bool
