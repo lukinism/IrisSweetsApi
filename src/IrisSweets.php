@@ -9,6 +9,7 @@ use IrisSweetsApi\Api\Gold\Gold;
 use IrisSweetsApi\Api\Pocket;
 use IrisSweetsApi\Api\Updates\Updates;
 use IrisSweetsApi\Api\IrisAgents;
+use IrisSweetsApi\Api\Exchange\Exchange;
 use IrisSweetsApi\Config;
 
 
@@ -70,5 +71,10 @@ class IrisSweets
     public function irisAgents(): IrisAgents
     {
         return new IrisAgents($this->client, $this->config->getBotId(), $this->config->getIrisToken(), $this->config->getBaseUrl());
+    }
+
+    public function exchange(): Exchange
+    {
+        return new Exchange($this->client);
     }
 }
