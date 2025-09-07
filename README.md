@@ -1,5 +1,9 @@
 # 🍬 Iris Sweets API
 
+[![PHP Version](https://img.shields.io/badge/PHP-8.3%2B-blue.svg)](https://php.net)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Composer](https://img.shields.io/badge/Composer-Ready-orange.svg)](composer.json)
+
 **PHP библиотека для работы с Iris Sweets API**
 
 ## 🚀 Возможности
