@@ -23,7 +23,7 @@ class Sweets
      * @param int|float $sweets Количество ирисок для отправки
      * @param int $userId ID пользователя
      * @param string $comment Комментарий к отправке
-     * @return array Ответ от API {"response":true} при успехе, {"response":false} при неудаче
+     * @return array Ответ от API {"result": int} при успехе
  * @throws \IrisSweetsApi\Exception\ApiException При ошибке запроса или неверных параметрах
      */
     public function give(int|float $sweets, int $userId, string $comment = ''): array

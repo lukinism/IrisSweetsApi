@@ -94,27 +94,11 @@ class Config
     }
 
     /**
-     * Получить Base URL
+     * Получить Base URL (фиксированный для v0.2)
      */
     public function getBaseUrl(): string
     {
-        return $this->get('IRIS_BASE_URL', 'https://iris-tg.ru/api/');
-    }
-
-    /**
-     * Получить версию API
-     */
-    public function getApiVersion(): string
-    {
-        return $this->get('IRIS_API_VERSION', 'v100');
-    }
-
-    /**
-     * Установить версию API
-     */
-    public function setApiVersion(string $version): void
-    {
-        $this->set('IRIS_API_VERSION', $version);
+        return 'https://iris-tg.ru/api/v0.2/';
     }
 
     /**

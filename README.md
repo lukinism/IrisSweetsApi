@@ -36,15 +36,12 @@ IRIS_BOT_ID=your_bot_id_here
 
 # Токен
 IRIS_TOKEN=your_iris_token_here
-
-# Версия API (по умолчанию v100)
-IRIS_API_VERSION=v100
 ```
 
 ### Способ 2: Через параметры конструктора
 
 ```php
-$api = new IrisSweets($botId, $irisToken, $apiVersion);
+$api = new IrisSweets($botId, $irisToken);
 ```
 
 ## 🔧 Использование
@@ -62,20 +59,7 @@ use IrisSweetsApi\Exception\ApiException;
 $api = new IrisSweets();
 
 // Или передайте параметры напрямую
-$api = new IrisSweets('your-bot-id', 'your-iris-token', 'v0.1');
-```
-
-### 🌐 Версии API
-
-Библиотека поддерживает версионирование API. По умолчанию используется версия `v100`.
-
-```php
-// Установить версию API
-$api->setApiVersion('v0.1');
-
-// Получить текущую версию
-$currentVersion = $api->getApiVersion();
-echo "Текущая версия API: " . $currentVersion;
+$api = new IrisSweets('your-bot-id', 'your-iris-token');
 ```
 
 ### 💰 Получение баланса
@@ -107,6 +91,42 @@ try {
     $history = $api->sweets()->getHistory(0);
     echo "История операций: " . count($history) . " записей\n";
     
+    // Обработка истории транзакций
+    foreach ($history as $transaction) {
+        echo "ID транзакции: " . $transaction['id'] . "\n";
+        echo "Тип операции: " . $transaction['type'] . "\n";
+        echo "Количество: " . $transaction['amount'] . "\n";
+        echo "Контрагент: " . $transaction['peer_id'] . "\n";
+        echo "Баланс: " . $transaction['balance'] . "\n";
+        echo "Дата: " . date('Y-m-d H:i:s', $transaction['date'] / 1000) . "\n";
+        
+        if (isset($transaction['details']['fee'])) {
+            echo "Комиссия: " . $transaction['details']['fee'] . "\n";
+        }
+        
+        if (isset($transaction['details']['total'])) {
+            echo "Общая сумма: " . $transaction['details']['total'] . "\n";
+        }
+        
+        if (isset($transaction['details']['amount'])) {
+            echo "Получено контрагентом: " . $transaction['details']['amount'] . "\n";
+        }
+        
+        if (isset($transaction['details']['donate_score'])) {
+            echo "Донат очки: " . $transaction['details']['donate_score'] . "\n";
+        }
+        
+        if (isset($transaction['comment']) && !empty($transaction['comment'])) {
+            echo "Комментарий: " . $transaction['comment'] . "\n";
+        }
+        
+        if (isset($transaction['metadata']) && !empty($transaction['metadata'])) {
+            echo "Метаданные: " . json_encode($transaction['metadata']) . "\n";
+        }
+        
+        echo "---\n";
+    }
+    
 } catch (ApiException $e) {
     echo "❌ Ошибка API: " . $e->getMessage() . "\n";
 }
@@ -118,15 +138,51 @@ try {
 try {
     // Выдать 100 голды пользователю
     $result = $api->gold()->give(100, 123456);
-    echo "✅ Голда успешно выдано\n";
+    echo "✅ Голда успешна выдана\n";
     
     // Выдать 50.5 голды с комментарием
     $result = $api->gold()->give(50.5, 123456, 'Награда за активность');
-    echo "✅ Голда успешно выдано\n";
+    echo "✅ Голда успешна выдана\n";
     
     // Получить общую историю операций
     $history = $api->gold()->getHistory(0);
     echo "Общая история: " . count($history) . " записей\n";
+    
+    // Обработка истории транзакций голды
+    foreach ($history as $transaction) {
+        echo "ID транзакции: " . $transaction['id'] . "\n";
+        echo "Тип операции: " . $transaction['type'] . "\n";
+        echo "Количество: " . $transaction['amount'] . "\n";
+        echo "Контрагент: " . $transaction['peer_id'] . "\n";
+        echo "Баланс: " . $transaction['balance'] . "\n";
+        echo "Дата: " . date('Y-m-d H:i:s', $transaction['date'] / 1000) . "\n";
+        
+        if (isset($transaction['details']['fee'])) {
+            echo "Комиссия: " . $transaction['details']['fee'] . "\n";
+        }
+        
+        if (isset($transaction['details']['total'])) {
+            echo "Общая сумма, включая комиссию: " . $transaction['details']['total'] . "\n";
+        }
+        
+        if (isset($transaction['details']['amount'])) {
+            echo "Получено контрагентом: " . $transaction['details']['amount'] . "\n";
+        }
+        
+        if (isset($transaction['details']['donate_score'])) {
+            echo "Донат очки: " . $transaction['details']['donate_score'] . "\n";
+        }
+        
+        if (isset($transaction['comment']) && !empty($transaction['comment'])) {
+            echo "Комментарий: " . $transaction['comment'] . "\n";
+        }
+        
+        if (isset($transaction['metadata']) && !empty($transaction['metadata'])) {
+            echo "Метаданные: " . json_encode($transaction['metadata']) . "\n";
+        }
+        
+        echo "---\n";
+    }
     
 } catch (ApiException $e) {
     echo "❌ Ошибка API: " . $e->getMessage() . "\n";
@@ -150,6 +206,59 @@ try {
     $api->pocket()->deny_user(123456);   // Запретить пользователю
     
     echo "✅ Настройки мешка обновлены\n";
+    
+} catch (ApiException $e) {
+    echo "❌ Ошибка API: " . $e->getMessage() . "\n";
+}
+```
+
+### 🔄 Получение обновлений событий
+
+```php
+try {
+    // Получить все события
+    $updates = $api->updates()->getUpdates();
+    echo "События: " . count($updates) . " записей\n";
+    
+    // Обработка событий
+    foreach ($updates as $update) {
+        echo "ID события: " . $update['id'] . "\n";
+        echo "Тип события: " . $update['type'] . "\n";
+        echo "Дата: " . date('Y-m-d H:i:s', $update['date']) . "\n";
+        
+        // Обработка объекта события
+        $object = $update['object'];
+        if ($update['type'] === 'sweets_log') {
+            echo "Ириски: " . $object['amount'] . "\n";
+            echo "Контрагент: " . $object['peer_id'] . "\n";
+        } elseif ($update['type'] === 'gold_log') {
+            echo "Голда: " . $object['amount'] . "\n";
+            echo "Контрагент: " . $object['peer_id'] . "\n";
+        }
+        
+        echo "---\n";
+    }
+    
+    // Получить события с определенного ID
+    $updates = $api->updates()->getUpdates(10);
+    
+} catch (ApiException $e) {
+    echo "❌ Ошибка API: " . $e->getMessage() . "\n";
+}
+```
+
+### 🤖 Получение списка агентов Ириса
+
+```php
+try {
+    // Получить список действующих агентов
+    $agents = $api->irisAgents()->getAgents();
+    echo "Действующих агентов: " . count($agents) . "\n";
+    
+    // Обработка списка агентов
+    foreach ($agents as $agentId) {
+        echo "ID агента: " . $agentId . "\n";
+    }
     
 } catch (ApiException $e) {
     echo "❌ Ошибка API: " . $e->getMessage() . "\n";
@@ -183,6 +292,13 @@ try {
 - `pocket()->deny_all()` - запретить всем переводить в мешок
 - `pocket()->allow_user($userId)` - разрешить конкретному пользователю
 - `pocket()->deny_user($userId)` - запретить конкретному пользователю
+
+### Обновления событий
+- `updates()->getUpdates($offset)` - получение событий
+  - `$offset` (int) - ID события для смещения (по умолчанию 0)
+
+### Агенты Ириса
+- `irisAgents()->getAgents()` - получение списка действующих агентов
 
 ## ⚠️ Обработка ошибок
 
@@ -281,6 +397,70 @@ print_r($detailedInfo);
 ```
 
 **📚 Подробнее:** См. [документацию по обработке ошибок](docs/ERROR_HANDLING.md)
+
+## 📊 Структура данных API
+
+### История транзакций (getHistory)
+
+```php
+[
+    [
+        'id' => int,                    // ID транзакции
+        'type' => string,               // 'send' или 'receive'
+        'amount' => float,              // Количество единиц (отрицательное для send)
+        'balance' => float,             // Новый баланс после транзакции
+        'peer_id' => int,               // ID контрагента
+        'to_user_id' => int,            // DEPRECATED. Уберём в v0.4. Используйте peer_id
+        'date' => int,                  // Время операции UNIX-time в миллисекундах
+        'details' => [
+            'total' => float,           // Общая сумма перевода, включая комиссию
+            'amount' => float,          // Сколько единиц получил контрагент
+            'donate_score' => int,      // Переданных очков доната (опционально)
+            'fee' => float              // Комиссия перевода (опционально)
+        ],
+        'comment' => string,            // Комментарий к переводу
+        'metadata' => array             // Метаданные (опционально)
+    ]
+]
+```
+
+### Баланс (getBalance)
+
+```php
+[
+    'gold' => float,           // Количество голды
+    'sweets' => float,         // Количество ирисок
+    'donate_score' => int      // Донат очки
+]
+```
+
+### Обновления событий (getUpdates)
+
+```php
+[
+    [
+        'id' => int,                    // ID события
+        'type' => string,               // Тип события: 'sweets_log' или 'gold_log'
+        'date' => int,                  // Время события UNIX-time
+        'object' => array               // Объект события (структура как в history)
+    ]
+]
+```
+
+**Типы событий:**
+- `sweets_log` - события с ирисками (объект соответствует структуре из `pocket/sweets/history`)
+- `gold_log` - события с голдой (объект соответствует структуре из `pocket/gold/history`)
+
+### Агенты Ириса (getAgents)
+
+```php
+[
+    int,  // ID агента 1
+    int,  // ID агента 2
+    int,  // ID агента 3
+    // ... массив идентификаторов действующих агентов
+]
+```
 
 ## 🔒 Безопасность
 
@@ -385,3 +565,7 @@ checkBalance();
 git pull origin main
 composer update
 ```
+---
+
+**Сделано с ❤️ для сообщества Iris Чат-менеджер**
+

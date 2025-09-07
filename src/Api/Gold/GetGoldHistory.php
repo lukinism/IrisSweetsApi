@@ -16,14 +16,14 @@ class GetGoldHistory extends AbstractApi
     /**
      * Получить историю операций с голдой
      * 
-     * @param int $offset ID записи для смещения (по умолчанию 0 - с начала)
-     * @return array Ответ от API с историей операций с голдой
+     * @param int $offset Смещение для пагинации (по умолчанию 0)
+     * @return array Ответ от API с историей операций
      * @throws ApiException При ошибке запроса или неверных параметрах
      */
     public function getHistory(int $offset = 0): array
     {
         if ($offset < 0) {
-            throw new ApiException('ID записи для смещения должен быть больше или равен 0');
+            throw new ApiException('Offset должен быть больше или равен 0');
         }
 
         $params = [];
@@ -32,8 +32,6 @@ class GetGoldHistory extends AbstractApi
             $params['offset'] = $offset;
         }
 
-        $response = $this->makeRequest('pocket/gold/history', $params);
-        
-        return $response;
+        return $this->makeRequest('pocket/gold/history', $params);
     }
 }

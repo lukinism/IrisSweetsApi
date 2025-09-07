@@ -19,7 +19,7 @@ class GiveGold extends AbstractApi
      * @param int $gold Количество голды для отправки
      * @param int $userId ID пользователя
      * @param string $comment Комментарий к отправке
-     * @return array Ответ от API {"response":true} при успехе, {"response":false} при неудаче
+     * @return array Ответ от API {"result": int} при успехе
  * @throws ApiException При ошибке запроса или неверных параметрах
      */
     public function give(int $gold, int $userId, string $comment = ''): array
@@ -43,7 +43,7 @@ class GiveGold extends AbstractApi
 
         $response = $this->makeRequest('pocket/gold/give', $params);
 
-        if (!isset($response['result']) || $response['result'] !== true) {
+        if (!isset($response['result']) || !is_int($response['result'])) {
             throw new ApiException('Неожиданный ответ от API: ' . json_encode($response));
         }
 

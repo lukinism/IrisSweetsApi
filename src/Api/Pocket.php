@@ -7,9 +7,9 @@ use IrisSweetsApi\Exception\ApiException;
 
 class Pocket extends AbstractApi
 {
-    public function __construct(HttpClient $httpClient, string $botId = '', string $irisToken = '', string $baseUrl = 'https://iris-tg.ru/api/')
+    public function __construct(HttpClient $httpClient, string $botId = '', string $irisToken = '')
     {
-        parent::__construct($httpClient, $botId, $irisToken, $baseUrl);
+        parent::__construct($httpClient, $botId, $irisToken);
     }
 
     /**

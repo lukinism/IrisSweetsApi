@@ -20,13 +20,13 @@ class Gold
     /**
      * Выдать голду пользователю
      * 
-     * @param int|float $gold Количество голды для отправки
+     * @param int $gold Количество голды для отправки
      * @param int $userId ID пользователя
      * @param string $comment Комментарий к отправке
-     * @return array Ответ от API {"result":"ok"}
+     * @return array Ответ от API {"result": int} при успехе
      * @throws \IrisSweetsApi\Exception\ApiException При ошибке запроса или неверных параметрах
      */
-    public function give(int|float $gold, int $userId, string $comment = ''): array
+    public function give(int $gold, int $userId, string $comment = ''): array
     {
         $giveGold = new GiveGold($this->httpClient, $this->botId, $this->irisToken);
         return $giveGold->give($gold, $userId, $comment);
@@ -44,5 +44,4 @@ class Gold
         $getGoldHistory = new GetGoldHistory($this->httpClient, $this->botId, $this->irisToken);
         return $getGoldHistory->getHistory($offset);
     }
-
 }
