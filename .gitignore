@@ -15,4 +15,4 @@ logs/
 .env.local
 .env.production
 .env.staging
-
+/docs/website

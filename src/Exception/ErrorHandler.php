@@ -70,6 +70,7 @@ class ErrorHandler
             ErrorType::NOT_ENOUGH_RESOURCES => 'Недостаточно ирисок или голды',
             ErrorType::USER_NOT_FOUND => 'Пользователь не найден',
             ErrorType::ACCOUNT_NOT_USER => 'Данный аккаунт не пользователь',
+            ErrorType::RIGHTS_NOT_GIVEN => 'Права не предоставлены для выполнения операции',
             ErrorType::CALCULATION_ERROR => 'Ошибка в расчёте сжигании ирисок. Обратитесь к агентам',
             ErrorType::UNSUCCESSFUL_DECREASE => 'Не удалось выполнить операцию',
             ErrorType::SWEETS_GOLD_ZERO => 'Количество ирисок или голды равно нулю',
@@ -94,6 +95,12 @@ class ErrorHandler
                 'Проверьте правильность ID пользователя',
                 'Убедитесь, что пользователь существует',
                 'Проверьте права доступа'
+            ],
+            ErrorType::RIGHTS_NOT_GIVEN => [
+                'Проверьте права доступа',
+                'Убедитесь, что вашему боту предоставили необходимые разрешения',
+                'Обратитесь к пользователю для получения прав',
+                'Проверьте корректность bot_id и iris_token'
             ],
             ErrorType::CALCULATION_ERROR => [
                 'Ошибка, попробуйте позже.',
@@ -131,6 +138,8 @@ class ErrorHandler
         ];
     }
 }
+
+
 
 
 

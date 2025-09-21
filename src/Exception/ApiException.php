@@ -112,6 +112,16 @@ class ApiException extends \Exception
     }
 
     /**
+     * Проверить, является ли ошибка связанной с недостатком прав
+     */
+    public function isRightsError(): bool
+    {
+        return $this->errorType === ErrorType::RIGHTS_NOT_GIVEN ||
+               $this->errorType === ErrorType::INSUFFICIENT_PERMISSIONS ||
+               str_contains(strtolower($this->errorDescription), 'rights are not given');
+    }
+
+    /**
      * Проверить, является ли ошибка серверной
      */
     public function isServerError(): bool

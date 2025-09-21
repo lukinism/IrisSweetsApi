@@ -131,4 +131,78 @@ class Pocket extends AbstractApi
 
         return $response;
     }
+
+    /**
+     * Передать очки доната пользователю
+     * 
+     * @param int $amount Количество очков доната
+     * @param int $userId ID пользователя, которому передаются очки доната
+     * @param string $comment Подпись к переводу (необязательный параметр)
+     * @return array Ответ от API {"result": int} - ID транзакции
+     * @throws ApiException При ошибке запроса или неверных параметрах
+     */
+    public function giveDonateScore(int $amount, int $userId, string $comment = ''): array
+    {
+        if ($amount <= 0) {
+            throw new ApiException('Количество очков доната должно быть больше 0');
+        }
+
+        if ($userId <= 0) {
+            throw new ApiException('ID пользователя должен быть больше 0');
+        }
+
+        $params = [
+            'amount' => $amount,
+            'user_id' => $userId
+        ];
+
+        if (!empty($comment)) {
+            $params['comment'] = $comment;
+        }
+
+        $response = $this->makeRequest('pocket/donate_score/give', $params);
+
+        if (!isset($response['result']) || !is_int($response['result'])) {
+            throw new ApiException('Неожиданный ответ от API: ' . json_encode($response));
+        }
+
+        return $response;
+    }
+
+    /**
+     * Получить историю изменения очков доната в мешке бота
+     * 
+     * @param int $offset Будут выданы записи с id >= offset (необязательный параметр)
+     * @param int $limit Количество записей в ответе (необязательный параметр, по умолчанию 200)
+     * @return array Массив записей истории очков доната
+     * @throws ApiException При ошибке запроса
+     */
+    public function getDonateScoreHistory(int $offset = 0, int $limit = 200): array
+    {
+        if ($offset < 0) {
+            throw new ApiException('Offset не может быть отрицательным');
+        }
+
+        if ($limit <= 0 || $limit > 1000) {
+            throw new ApiException('Limit должен быть от 1 до 1000');
+        }
+
+        $params = [];
+        
+        if ($offset > 0) {
+            $params['offset'] = $offset;
+        }
+        
+        if ($limit !== 200) {
+            $params['limit'] = $limit;
+        }
+
+        $response = $this->makeRequest('pocket/donate_score/history', $params);
+
+        if (!isset($response) || !is_array($response)) {
+            throw new ApiException('Неожиданный ответ от API: ' . json_encode($response));
+        }
+
+        return $response;
+    }
 }

@@ -18,6 +18,7 @@ class ErrorType
     // Ошибки доступа (403)
     public const ACCOUNT_NOT_USER = 'ACCOUNT_NOT_USER';
     public const INSUFFICIENT_PERMISSIONS = 'INSUFFICIENT_PERMISSIONS';
+    public const RIGHTS_NOT_GIVEN = 'RIGHTS_NOT_GIVEN';
     
     // Ошибки "не найдено" (404)
     public const USER_NOT_FOUND = 'USER_NOT_FOUND';
@@ -43,6 +44,7 @@ class ErrorType
             str_contains($descLower, 'sweets/gold is 0') => self::SWEETS_GOLD_ZERO,
             str_contains($descLower, 'user not found') => self::USER_NOT_FOUND,
             str_contains($descLower, 'account is not user') => self::ACCOUNT_NOT_USER,
+            str_contains($descLower, 'rights are not given') => self::RIGHTS_NOT_GIVEN,
             str_contains($descLower, 'ошибка в расчёте сжигании ирисок') => self::CALCULATION_ERROR,
             str_contains($descLower, 'not enough') => self::NOT_ENOUGH_RESOURCES,
             str_contains($descLower, 'unsuccessful') => self::UNSUCCESSFUL_DECREASE,
@@ -62,6 +64,7 @@ class ErrorType
             self::INVALID_TOKEN => 'Неверный токен',
             self::ACCOUNT_NOT_USER => 'Аккаунт не является пользователем',
             self::INSUFFICIENT_PERMISSIONS => 'Недостаточно прав',
+            self::RIGHTS_NOT_GIVEN => 'Разрешения не предоставлены',
             self::USER_NOT_FOUND => 'Пользователь не найден',
             self::RESOURCE_NOT_FOUND => 'Ресурс не найден',
             self::NOT_ENOUGH_RESOURCES => 'Недостаточно ресурсов',

@@ -36,6 +36,7 @@ enum HttpStatusCode: int
         return match(true) {
             str_contains($errorLower, 'user not found') => self::NOT_FOUND,
             str_contains($errorLower, 'account is not user') => self::FORBIDDEN,
+            str_contains($errorLower, 'rights are not given') => self::FORBIDDEN,
             str_contains($errorLower, 'ошибка в расчёте сжигании ирисок') => self::INTERNAL_SERVER_ERROR,
             str_contains($errorLower, 'not enough'), str_contains($errorLower, 'unsuccessful') => self::CONFLICT,
             default => self::BAD_REQUEST,
