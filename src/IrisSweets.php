@@ -11,6 +11,7 @@ use IrisSweetsApi\Api\Updates\Updates;
 use IrisSweetsApi\Api\IrisAgents;
 use IrisSweetsApi\Api\Exchange\Exchange;
 use IrisSweetsApi\Api\UserInfo;
+use IrisSweetsApi\Api\Trade;
 use IrisSweetsApi\Config;
 
 
@@ -82,5 +83,10 @@ class IrisSweets
     public function userInfo(): UserInfo
     {
         return new UserInfo($this->client, $this->config->getBotId(), $this->config->getIrisToken(), $this->config->getBaseUrl());
+    }
+
+    public function trade(): Trade
+    {
+        return new Trade($this->client, $this->config->getBotId(), $this->config->getIrisToken(), $this->config->getBaseUrl());
     }
 }

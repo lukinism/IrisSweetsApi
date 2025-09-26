@@ -13,6 +13,7 @@
 - **Управление мешком** - возможность запрета переводить вам и смотреть ваш мешок
 - **Получение баланса** - информация о балансе
 - **Работа с биржей** - стакан заявок, история сделок, анализ торговых данных
+- **Торговля ирис-голд** - покупка, продажа, управление заявками на бирже
 - **Информация о пользователях** - регистрация, активность, спам-статус, звёздность, мешок
 
 ## 📦 Установка
@@ -191,6 +192,48 @@ try {
 }
 ```
 
+### 🏪 Торговля ирис-голд
+
+```php
+try {
+    // Покупка ирис-голд
+    $buyResult = $api->trade()->buy(1.5, 10); // купить 10 ирис-голд по цене 1.5
+    echo "Куплено сразу: " . $buyResult['result']['done_volume'] . "\n";
+    echo "Потрачено ирисок: " . $buyResult['result']['sweets_spent'] . "\n";
+    
+    if (isset($buyResult['result']['new_order'])) {
+        echo "Создана заявка #" . $buyResult['result']['new_order']['id'] . "\n";
+    }
+    
+    // Продажа ирис-голд
+    $sellResult = $api->trade()->sell(1.4, 5); // продать 5 ирис-голд по цене 1.4
+    echo "Продано сразу: " . $sellResult['result']['done_volume'] . "\n";
+    echo "Получено ирисок: " . $sellResult['result']['sweets_received'] . "\n";
+    
+    // Получение активных заявок
+    $orders = $api->trade()->getMyOrders();
+    echo "Заявок на покупку: " . count($orders['result']['buy']) . "\n";
+    echo "Заявок на продажу: " . count($orders['result']['sell']) . "\n";
+    
+    // Управление заявками
+    if ($api->trade()->hasActiveOrders()) {
+        // Отменить все заявки
+        $cancelResult = $api->trade()->cancelAll();
+        echo "Возвращено голды: " . $cancelResult['result']['gold'] . "\n";
+        echo "Возвращено ирисок: " . $cancelResult['result']['sweets'] . "\n";
+        
+        // Или отменить заявки по конкретной цене
+        $api->trade()->cancelByPrice(1.5);
+        
+        // Или отменить часть заявки
+        $api->trade()->cancelPart(123, 5); // отменить 5 из заявки #123
+    }
+    
+} catch (ApiException $e) {
+    echo "❌ Ошибка API: " . $e->getMessage() . "\n";
+}
+```
+
 ### 👤 Информация о пользователях
 
 ```php
@@ -295,6 +338,28 @@ try {
 - `exchange()->getSpread()` - спред между лучшими ценами
 - `exchange()->getDeals($fromId)` - получить историю сделок
 - `exchange()->getDealsStats($fromId)` - статистика по сделкам
+
+### Торговля ирис-голд
+- `trade()->buy($price, $volume)` - заявка на покупку ирис-голд
+  - `$price` (float) - цена покупки (от 0.01 до 1000000)
+  - `$volume` (float) - количество голды для покупки
+- `trade()->sell($price, $volume)` - заявка на продажу ирис-голд
+  - `$price` (float) - цена продажи (от 0.01 до 1000000)
+  - `$volume` (float) - количество голды для продажи
+- `trade()->getMyOrders()` - список активных заявок бота
+- `trade()->cancelByPrice($price)` - отменить все заявки по указанной цене
+- `trade()->cancelAll()` - отменить все заявки бота
+- `trade()->cancelPart($id, $volume)` - отменить часть заявки
+  - `$id` (int) - ID заявки на бирже
+  - `$volume` (float) - объем для отмены
+
+#### Вспомогательные методы торговли
+- `trade()->getBuyOrders()` - только заявки на покупку
+- `trade()->getSellOrders()` - только заявки на продажу
+- `trade()->getTotalBuyVolume()` - общий объем заявок на покупку
+- `trade()->getTotalSellVolume()` - общий объем заявок на продажу
+- `trade()->getOrdersCount()` - количество активных заявок
+- `trade()->hasActiveOrders()` - проверка наличия активных заявок
 
 ### Информация о пользователях
 - `userInfo()->getRegistration($userId)` - информация о регистрации
@@ -675,6 +740,178 @@ function checkMultipleUsers($userIds) {
 // Использование
 checkUser(123456);
 checkMultipleUsers([123456, 789012, 345678]);
+```
+
+### Торговый бот
+
+```php
+<?php
+require_once __DIR__ . '/vendor/autoload.php';
+
+use IrisSweetsApi\IrisSweets;
+use IrisSweetsApi\Exception\ApiException;
+
+$api = new IrisSweets();
+
+class TradingBot {
+    private $api;
+    private $minSpread = 0.05; // минимальный спред для торговли
+    private $maxVolume = 100;  // максимальный объем заявки
+    
+    public function __construct($api) {
+        $this->api = $api;
+    }
+    
+    public function analyzeMarket() {
+        try {
+            // Получаем текущие цены
+            $bestBid = $this->api->exchange()->getBestBidPrice();
+            $bestAsk = $this->api->exchange()->getBestAskPrice();
+            $spread = $this->api->exchange()->getSpread();
+            
+            echo "=== Анализ рынка ===\n";
+            echo "Лучшая цена покупки: $bestBid\n";
+            echo "Лучшая цена продажи: $bestAsk\n";
+            echo "Спред: $spread\n";
+            
+            if ($spread >= $this->minSpread) {
+                echo "✅ Хорошие условия для торговли\n";
+                return ['bid' => $bestBid, 'ask' => $bestAsk, 'spread' => $spread];
+            } else {
+                echo "⚠️ Спред слишком мал для торговли\n";
+                return null;
+            }
+            
+        } catch (ApiException $e) {
+            echo "❌ Ошибка анализа рынка: " . $e->getMessage() . "\n";
+            return null;
+        }
+    }
+    
+    public function placeArbitrageOrders($marketData) {
+        if (!$marketData) return;
+        
+        try {
+            $bid = $marketData['bid'];
+            $ask = $marketData['ask'];
+            $spread = $marketData['spread'];
+            
+            // Проверяем активные заявки
+            $orders = $this->api->trade()->getMyOrders();
+            $activeBuyOrders = count($orders['result']['buy']);
+            $activeSellOrders = count($orders['result']['sell']);
+            
+            echo "=== Размещение арбитражных заявок ===\n";
+            echo "Активных заявок на покупку: $activeBuyOrders\n";
+            echo "Активных заявок на продажу: $activeSellOrders\n";
+            
+            // Если нет активных заявок, размещаем новые
+            if ($activeBuyOrders === 0 && $activeSellOrders === 0) {
+                // Покупка по цене чуть выше лучшей
+                $buyPrice = $bid + 0.01;
+                $buyResult = $this->api->trade()->buy($buyPrice, 10);
+                echo "✅ Размещена заявка на покупку по цене $buyPrice\n";
+                
+                // Продажа по цене чуть ниже лучшей
+                $sellPrice = $ask - 0.01;
+                $sellResult = $this->api->trade()->sell($sellPrice, 10);
+                echo "✅ Размещена заявка на продажу по цене $sellPrice\n";
+            }
+            
+        } catch (ApiException $e) {
+            echo "❌ Ошибка размещения заявок: " . $e->getMessage() . "\n";
+        }
+    }
+    
+    public function manageOrders() {
+        try {
+            $orders = $this->api->trade()->getMyOrders();
+            $buyOrders = $orders['result']['buy'];
+            $sellOrders = $orders['result']['sell'];
+            
+            echo "=== Управление заявками ===\n";
+            
+            // Проверяем заявки на покупку
+            foreach ($buyOrders as $order) {
+                $orderPrice = $order['price'];
+                $orderVolume = $order['volume'];
+                $orderId = $order['id'];
+                
+                // Если цена заявки слишком далеко от рынка, отменяем
+                $currentBid = $this->api->exchange()->getBestBidPrice();
+                if ($orderPrice < $currentBid - 0.1) {
+                    $this->api->trade()->cancelPart($orderId, $orderVolume);
+                    echo "❌ Отменена заявка на покупку #$orderId (цена $orderPrice)\n";
+                }
+            }
+            
+            // Проверяем заявки на продажу
+            foreach ($sellOrders as $order) {
+                $orderPrice = $order['price'];
+                $orderVolume = $order['volume'];
+                $orderId = $order['id'];
+                
+                // Если цена заявки слишком далеко от рынка, отменяем
+                $currentAsk = $this->api->exchange()->getBestAskPrice();
+                if ($orderPrice > $currentAsk + 0.1) {
+                    $this->api->trade()->cancelPart($orderId, $orderVolume);
+                    echo "❌ Отменена заявка на продажу #$orderId (цена $orderPrice)\n";
+                }
+            }
+            
+        } catch (ApiException $e) {
+            echo "❌ Ошибка управления заявками: " . $e->getMessage() . "\n";
+        }
+    }
+    
+    public function getTradingStats() {
+        try {
+            $orders = $this->api->trade()->getMyOrders();
+            $count = $this->api->trade()->getOrdersCount();
+            
+            echo "=== Статистика торговли ===\n";
+            echo "Всего заявок: " . $count['total_count'] . "\n";
+            echo "Заявок на покупку: " . $count['buy_count'] . "\n";
+            echo "Заявок на продажу: " . $count['sell_count'] . "\n";
+            
+            if ($count['total_count'] > 0) {
+                $totalBuyVolume = $this->api->trade()->getTotalBuyVolume();
+                $totalSellVolume = $this->api->trade()->getTotalSellVolume();
+                
+                echo "Общий объем покупок: $totalBuyVolume\n";
+                echo "Общий объем продаж: $totalSellVolume\n";
+            }
+            
+        } catch (ApiException $e) {
+            echo "❌ Ошибка получения статистики: " . $e->getMessage() . "\n";
+        }
+    }
+    
+    public function run() {
+        echo "🤖 Запуск торгового бота...\n\n";
+        
+        while (true) {
+            // Анализируем рынок
+            $marketData = $this->analyzeMarket();
+            
+            // Управляем существующими заявками
+            $this->manageOrders();
+            
+            // Размещаем новые заявки при необходимости
+            $this->placeArbitrageOrders($marketData);
+            
+            // Показываем статистику
+            $this->getTradingStats();
+            
+            echo "\n⏰ Ожидание 30 секунд...\n";
+            sleep(30);
+        }
+    }
+}
+
+// Использование
+$bot = new TradingBot($api);
+$bot->run();
 ```
 
 ## 📄 Лицензия
