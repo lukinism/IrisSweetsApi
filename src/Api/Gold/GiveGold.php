@@ -19,10 +19,11 @@ class GiveGold extends AbstractApi
      * @param int $gold Количество голды для отправки
      * @param int $userId ID пользователя
      * @param string $comment Комментарий к отправке
+     * @param int $donateScore Максимальное количество очков доната для использования (по умолчанию -1 - использовать максимально возможное)
      * @return array Ответ от API {"result": int} при успехе
  * @throws ApiException При ошибке запроса или неверных параметрах
      */
-    public function give(int $gold, int $userId, string $comment = ''): array
+    public function give(int $gold, int $userId, string $comment = '', int $donateScore = -1): array
     {
         if ($gold <= 0) {
             throw new ApiException('Количество голды должно быть больше 0');
@@ -40,6 +41,8 @@ class GiveGold extends AbstractApi
         if (!empty($comment)) {
             $params['comment'] = $comment;
         }
+
+        $params['donate_score'] = $donateScore;
 
         $response = $this->makeRequest('pocket/gold/give', $params);
 

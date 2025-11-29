@@ -23,13 +23,14 @@ class Sweets
      * @param int|float $sweets Количество ирисок для отправки
      * @param int $userId ID пользователя
      * @param string $comment Комментарий к отправке
+     * @param int $donateScore Максимальное количество очков доната для использования (по умолчанию -1 - использовать максимально возможное)
      * @return array Ответ от API {"result": int} при успехе
  * @throws \IrisSweetsApi\Exception\ApiException При ошибке запроса или неверных параметрах
      */
-    public function give(int|float $sweets, int $userId, string $comment = ''): array
+    public function give(int|float $sweets, int $userId, string $comment = '', int $donateScore = -1): array
     {
         $giveSweets = new GiveSweets($this->httpClient, $this->botId, $this->irisToken);
-        return $giveSweets->give($sweets, $userId, $comment);
+        return $giveSweets->give($sweets, $userId, $comment, $donateScore);
     }
 
     /**
