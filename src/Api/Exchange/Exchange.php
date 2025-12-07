@@ -7,12 +7,14 @@ use IrisSweetsApi\Http\HttpClient;
 class Exchange
 {
     private HttpClient $httpClient;
-    private string $baseUrl;
+    private string $botId;
+    private string $irisToken;
 
-    public function __construct(HttpClient $httpClient, string $baseUrl = 'https://iris-tg.ru/k/trade/')
+    public function __construct(HttpClient $httpClient, string $botId = '', string $irisToken = '')
     {
         $this->httpClient = $httpClient;
-        $this->baseUrl = rtrim($baseUrl, '/');
+        $this->botId = $botId;
+        $this->irisToken = $irisToken;
     }
 
     /**
@@ -22,7 +24,7 @@ class Exchange
      */
     public function orderBook(): OrderBook
     {
-        return new OrderBook($this->httpClient, $this->baseUrl);
+        return new OrderBook($this->httpClient, $this->botId, $this->irisToken);
     }
 
     /**
@@ -92,28 +94,30 @@ class Exchange
      */
     public function deals(): Deals
     {
-        return new Deals($this->httpClient);
+        return new Deals($this->httpClient, $this->botId, $this->irisToken);
     }
 
     /**
      * Получить последние сделки (быстрый доступ)
      * 
-     * @param int|null $fromId Минимальный ID сделки (опционально)
+     * @param int $id ID сделки, начиная с которой будет выдано limit записей (по умолчанию 0)
+     * @param int $limit Максимальное количество выдаваемых записей (от 0 до 200, по умолчанию 200)
      * @return array Массив сделок
      */
-    public function getDeals(?int $fromId = null): array
+    public function getDeals(int $id = 0, int $limit = 200): array
     {
-        return $this->deals()->getDeals($fromId);
+        return $this->deals()->getDeals($id, $limit);
     }
 
     /**
      * Получить статистику по сделкам (быстрый доступ)
      * 
-     * @param int|null $fromId Минимальный ID сделки (опционально)
+     * @param int $id ID сделки для начала выборки (по умолчанию 0)
+     * @param int $limit Максимальное количество записей (по умолчанию 200)
      * @return array Статистика по сделкам
      */
-    public function getDealsStats(?int $fromId = null): array
+    public function getDealsStats(int $id = 0, int $limit = 200): array
     {
-        return $this->deals()->getDealsStats($fromId);
+        return $this->deals()->getDealsStats($id, $limit);
     }
 }

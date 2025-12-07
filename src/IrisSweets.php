@@ -6,6 +6,7 @@ use IrisSweetsApi\Http\HttpClient;
 use IrisSweetsApi\Api\Balance;
 use IrisSweetsApi\Api\Sweets\Sweets;
 use IrisSweetsApi\Api\Gold\Gold;
+use IrisSweetsApi\Api\TgStars\TgStars;
 use IrisSweetsApi\Api\Pocket;
 use IrisSweetsApi\Api\Updates\Updates;
 use IrisSweetsApi\Api\IrisAgents;
@@ -60,6 +61,11 @@ class IrisSweets
         return new Gold($this->client, $this->config->getBotId(), $this->config->getIrisToken(), $this->config->getBaseUrl());
     }
 
+    public function tgStars(): TgStars
+    {
+        return new TgStars($this->client, $this->config->getBotId(), $this->config->getIrisToken(), $this->config->getBaseUrl());
+    }
+
     public function pocket(): Pocket
     {
         return new Pocket($this->client, $this->config->getBotId(), $this->config->getIrisToken(), $this->config->getBaseUrl());
@@ -77,7 +83,7 @@ class IrisSweets
 
     public function exchange(): Exchange
     {
-        return new Exchange($this->client);
+        return new Exchange($this->client, $this->config->getBotId(), $this->config->getIrisToken());
     }
 
     public function userInfo(): UserInfo

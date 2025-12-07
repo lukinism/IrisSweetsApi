@@ -316,6 +316,21 @@ try {
   - `$comment` (string, опционально) - комментарий к выдаче
 - `gold()->getHistory($offset)` - получение общей истории операций
 
+### Тг-звёзды
+- `tgStars()->give($tgstars, $userId, $comment)` - передать тг-звёзды пользователю
+  - `$tgstars` (int) - количество тг-звёзд
+  - `$userId` (int) - ID пользователя
+  - `$comment` (string, опционально) - подпись к переводу
+- `tgStars()->buy($tgstars)` - покупка тг-звёзд за ириски
+  - `$tgstars` (int) - количество тг-звёзд для покупки
+- `tgStars()->getPrice($tgstars)` - оценка стоимости покупки тг-звёзд
+  - `$tgstars` (int) - количество тг-звёзд для покупки
+  - Возвращает: `{"result": {"tgstars": int, "sweets": int}}`
+- `tgStars()->getHistory($offset, $limit)` - история изменения тг-звёзд в мешке
+  - `$offset` (int, опционально) - записи с id >= offset (по умолчанию 0)
+  - `$limit` (int, опционально) - количество записей (по умолчанию 200)
+
+
 ### Управление мешком
 - `pocket()->enable()` - открыть доступ к мешку
 - `pocket()->disable()` - закрыть доступ к мешку
@@ -332,12 +347,18 @@ try {
   - `$limit` (int, опционально) - количество записей (по умолчанию 200)
 
 ### Биржа
-- `exchange()->getOrderBook()` - получить стакан заявок
+- `exchange()->getOrderBook()` - получить стакан заявок Ирис-биржи
+  - Возвращает: `{"buy": [...], "sell": [...]}`
+  - Каждая заявка содержит: `{"price": float, "volume": int}`
 - `exchange()->getBestBidPrice()` - лучшая цена покупки
 - `exchange()->getBestAskPrice()` - лучшая цена продажи
 - `exchange()->getSpread()` - спред между лучшими ценами
-- `exchange()->getDeals($fromId)` - получить историю сделок
-- `exchange()->getDealsStats($fromId)` - статистика по сделкам
+- `exchange()->getDeals($id, $limit)` - получить историю сделок
+  - `$id` (int, опционально) - ID сделки, начиная с которой выдаются записи (по умолчанию 0 - последние сделки)
+  - `$limit` (int, опционально) - максимальное количество записей от 0 до 200 (по умолчанию 200)
+  - Возвращает массив сделок: `[{"id": int, "group_id": int, "date": int, "price": float, "volume": int, "type": "buy"|"sell"}, ...]`
+- `exchange()->getDealsStats($id, $limit)` - статистика по сделкам
+- `exchange()->deals()->getDealsByGroup($groupId, $id, $limit)` - получить сделки по group_id (для оценки объёма крупных сделок)
 
 ### Торговля ирис-голд
 - `trade()->buy($price, $volume)` - заявка на покупку ирис-голд
@@ -400,6 +421,7 @@ try {
 - `sweets_log` - события с ирисками
 - `gold_log` - события с голдой
 - `donate_score_log` - события с очками доната
+- `tgstars_log` - события с тг-звёздами
 
 #### Структура события:
 ```php
@@ -422,6 +444,19 @@ try {
     'peer_id' => int,               // ID контрагента
     'comment' => string,            // Комментарий к переводу
     'metadata' => array             // Дополнительные данные
+]
+```
+
+#### Структура объекта события для тг-звёзд (tgstars_log):
+```php
+[
+    'id' => int,                    // ID транзакции
+    'type' => string,               // 'send', 'receive', 'purchase'
+    'date' => int,                  // UNIX-time
+    'amount' => int,                // Количество тг-звёзд (отрицательное для отправки)
+    'balance' => int,               // Новый баланс
+    'peer_id' => int,               // ID контрагента
+    'comment' => string             // Комментарий к переводу
 ]
 ```
 

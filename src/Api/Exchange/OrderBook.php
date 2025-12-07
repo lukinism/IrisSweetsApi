@@ -2,48 +2,38 @@
 
 namespace IrisSweetsApi\Api\Exchange;
 
+use IrisSweetsApi\Api\AbstractApi;
 use IrisSweetsApi\Http\HttpClient;
 use IrisSweetsApi\Exception\ApiException;
 
-class OrderBook
+class OrderBook extends AbstractApi
 {
-    private HttpClient $httpClient;
-    private string $baseUrl;
-
-    public function __construct(HttpClient $httpClient, string $baseUrl = 'https://iris-tg.ru/k/trade/')
+    public function __construct(HttpClient $httpClient, string $botId = '', string $irisToken = '')
     {
-        $this->httpClient = $httpClient;
-        $this->baseUrl = rtrim($baseUrl, '/');
+        parent::__construct($httpClient, $botId, $irisToken);
     }
 
     /**
-     * Получить стакан заявок
+     * Получить стакан заявок Ирис-биржи
      * 
      * @return array Массив с ключами 'buy' и 'sell', содержащий заявки на покупку и продажу
      * @throws ApiException
      */
     public function getOrderBook(): array
     {
-        $url = $this->baseUrl . '/order_book';
+        $response = $this->makeRequest('trade/orderbook');
         
-        try {
-            $response = $this->httpClient->get($url);
-            $data = json_decode($response, true);
-            
-            if (json_last_error() !== JSON_ERROR_NONE) {
-                throw new ApiException('Ошибка декодирования JSON ответа: ' . json_last_error_msg());
-            }
-            
-            if (!isset($data['buy']) || !isset($data['sell'])) {
-                throw new ApiException('Неверный формат ответа API: отсутствуют ключи buy или sell');
-            }
-            
-            return $data;
-        } catch (ApiException $e) {
-            throw $e;
-        } catch (\Exception $e) {
-            throw new ApiException('Ошибка при получении стакана заявок: ' . $e->getMessage());
+        if (!isset($response['result']) || !is_array($response['result'])) {
+            throw new ApiException('Неверный формат ответа API: отсутствует result');
         }
+        
+        $result = $response['result'];
+        
+        if (!isset($result['buy']) || !isset($result['sell'])) {
+            throw new ApiException('Неверный формат ответа API: отсутствуют ключи buy или sell');
+        }
+        
+        return $result;
     }
 
     /**
@@ -204,7 +194,3 @@ class OrderBook
         ];
     }
 }
-
-
-
-

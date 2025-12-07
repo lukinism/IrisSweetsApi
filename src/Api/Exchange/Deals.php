@@ -2,53 +2,55 @@
 
 namespace IrisSweetsApi\Api\Exchange;
 
+use IrisSweetsApi\Api\AbstractApi;
 use IrisSweetsApi\Http\HttpClient;
 use IrisSweetsApi\Exception\ApiException;
 
-class Deals
+class Deals extends AbstractApi
 {
-    private HttpClient $httpClient;
-    private string $baseUrl;
-
-    public function __construct(HttpClient $httpClient, string $baseUrl = 'https://iris-tg.ru/trade/')
+    public function __construct(HttpClient $httpClient, string $botId = '', string $irisToken = '')
     {
-        $this->httpClient = $httpClient;
-        $this->baseUrl = rtrim($baseUrl, '/');
+        parent::__construct($httpClient, $botId, $irisToken);
     }
 
     /**
-     * Получить последние сделки
+     * Получить историю сделок Ирис-биржи
      * 
-     * @param int|null $fromId Минимальный ID сделки (опционально)
+     * @param int $id ID сделки, начиная с которой будет выдано limit записей (по умолчанию 0 - последние limit сделок)
+     * @param int $limit Максимальное количество выдаваемых записей (от 0 до 200, по умолчанию 200)
      * @return array Массив сделок
      * @throws ApiException
      */
-    public function getDeals(?int $fromId = null): array
+    public function getDeals(int $id = 0, int $limit = 200): array
     {
-        $url = $this->baseUrl . '/deals';
-        
+        if ($id < 0) {
+            throw new ApiException('ID сделки не может быть отрицательным');
+        }
+
+        if ($limit < 0 || $limit > 200) {
+            throw new ApiException('Limit должен быть от 0 до 200');
+        }
+
         $params = [];
-        if ($fromId !== null) {
-            $params['id'] = $fromId;
+        
+        if ($id > 0) {
+            $params['id'] = $id;
         }
         
-        try {
-            $response = $this->httpClient->get($url, $params);
-            $data = json_decode($response, true);
-            
-            if (json_last_error() !== JSON_ERROR_NONE) {
-                throw new ApiException('Ошибка декодирования JSON ответа: ' . json_last_error_msg());
-            }
-            
-            if (!is_array($data)) {
-                throw new ApiException('Неверный формат ответа API: ожидается массив');
-            }
-            
-            return $data;
-        } catch (ApiException $e) {
-            throw $e;
-        } catch (\Exception $e) {
-            throw new ApiException('Ошибка при получении сделок: ' . $e->getMessage());
+        if ($limit !== 200) {
+            $params['limit'] = $limit;
+        }
+
+        $response = $this->makeRequest('trade/deals', $params);
+        
+        // API возвращает массив сделок напрямую или в обертке result
+        if (isset($response['result']) && is_array($response['result'])) {
+            return $response['result'];
+        } elseif (is_array($response) && !isset($response['error'])) {
+            // Если данные пришли напрямую как массив
+            return $response;
+        } else {
+            throw new ApiException('Неверный формат ответа API: ожидается массив сделок');
         }
     }
 
@@ -56,16 +58,18 @@ class Deals
      * Получить сделки за последние N минут
      * 
      * @param int $minutes Количество минут
+     * @param int $id ID сделки для начала выборки (по умолчанию 0)
+     * @param int $limit Максимальное количество записей (по умолчанию 200)
      * @return array Массив сделок за указанный период
      * @throws ApiException
      */
-    public function getDealsForLastMinutes(int $minutes): array
+    public function getDealsForLastMinutes(int $minutes, int $id = 0, int $limit = 200): array
     {
-        $deals = $this->getDeals();
+        $deals = $this->getDeals($id, $limit);
         $cutoffTime = time() - ($minutes * 60);
         
         return array_filter($deals, function($deal) use ($cutoffTime) {
-            return $deal['date'] >= $cutoffTime;
+            return isset($deal['date']) && $deal['date'] >= $cutoffTime;
         });
     }
 
@@ -73,53 +77,59 @@ class Deals
      * Получить сделки за последние N часов
      * 
      * @param int $hours Количество часов
+     * @param int $id ID сделки для начала выборки (по умолчанию 0)
+     * @param int $limit Максимальное количество записей (по умолчанию 200)
      * @return array Массив сделок за указанный период
      * @throws ApiException
      */
-    public function getDealsForLastHours(int $hours): array
+    public function getDealsForLastHours(int $hours, int $id = 0, int $limit = 200): array
     {
-        return $this->getDealsForLastMinutes($hours * 60);
+        return $this->getDealsForLastMinutes($hours * 60, $id, $limit);
     }
 
     /**
      * Получить сделки за последние N дней
      * 
      * @param int $days Количество дней
+     * @param int $id ID сделки для начала выборки (по умолчанию 0)
+     * @param int $limit Максимальное количество записей (по умолчанию 200)
      * @return array Массив сделок за указанный период
      * @throws ApiException
      */
-    public function getDealsForLastDays(int $days): array
+    public function getDealsForLastDays(int $days, int $id = 0, int $limit = 200): array
     {
-        return $this->getDealsForLastHours($days * 24);
+        return $this->getDealsForLastHours($days * 24, $id, $limit);
     }
 
     /**
      * Получить только сделки на покупку
      * 
-     * @param int|null $fromId Минимальный ID сделки (опционально)
+     * @param int $id ID сделки для начала выборки (по умолчанию 0)
+     * @param int $limit Максимальное количество записей (по умолчанию 200)
      * @return array Массив сделок на покупку
      * @throws ApiException
      */
-    public function getBuyDeals(?int $fromId = null): array
+    public function getBuyDeals(int $id = 0, int $limit = 200): array
     {
-        $deals = $this->getDeals($fromId);
+        $deals = $this->getDeals($id, $limit);
         return array_filter($deals, function($deal) {
-            return $deal['type'] === 'buy';
+            return isset($deal['type']) && $deal['type'] === 'buy';
         });
     }
 
     /**
      * Получить только сделки на продажу
      * 
-     * @param int|null $fromId Минимальный ID сделки (опционально)
+     * @param int $id ID сделки для начала выборки (по умолчанию 0)
+     * @param int $limit Максимальное количество записей (по умолчанию 200)
      * @return array Массив сделок на продажу
      * @throws ApiException
      */
-    public function getSellDeals(?int $fromId = null): array
+    public function getSellDeals(int $id = 0, int $limit = 200): array
     {
-        $deals = $this->getDeals($fromId);
+        $deals = $this->getDeals($id, $limit);
         return array_filter($deals, function($deal) {
-            return $deal['type'] === 'sell';
+            return isset($deal['type']) && $deal['type'] === 'sell';
         });
     }
 
@@ -128,15 +138,16 @@ class Deals
      * 
      * @param float $minPrice Минимальная цена
      * @param float $maxPrice Максимальная цена
-     * @param int|null $fromId Минимальный ID сделки (опционально)
+     * @param int $id ID сделки для начала выборки (по умолчанию 0)
+     * @param int $limit Максимальное количество записей (по умолчанию 200)
      * @return array Массив сделок в диапазоне цен
      * @throws ApiException
      */
-    public function getDealsInPriceRange(float $minPrice, float $maxPrice, ?int $fromId = null): array
+    public function getDealsInPriceRange(float $minPrice, float $maxPrice, int $id = 0, int $limit = 200): array
     {
-        $deals = $this->getDeals($fromId);
+        $deals = $this->getDeals($id, $limit);
         return array_filter($deals, function($deal) use ($minPrice, $maxPrice) {
-            return $deal['price'] >= $minPrice && $deal['price'] <= $maxPrice;
+            return isset($deal['price']) && $deal['price'] >= $minPrice && $deal['price'] <= $maxPrice;
         });
     }
 
@@ -144,28 +155,30 @@ class Deals
      * Получить сделки с объемом больше указанного
      * 
      * @param int $minVolume Минимальный объем
-     * @param int|null $fromId Минимальный ID сделки (опционально)
+     * @param int $id ID сделки для начала выборки (по умолчанию 0)
+     * @param int $limit Максимальное количество записей (по умолчанию 200)
      * @return array Массив сделок с большим объемом
      * @throws ApiException
      */
-    public function getDealsWithMinVolume(int $minVolume, ?int $fromId = null): array
+    public function getDealsWithMinVolume(int $minVolume, int $id = 0, int $limit = 200): array
     {
-        $deals = $this->getDeals($fromId);
+        $deals = $this->getDeals($id, $limit);
         return array_filter($deals, function($deal) use ($minVolume) {
-            return $deal['volume'] >= $minVolume;
+            return isset($deal['volume']) && $deal['volume'] >= $minVolume;
         });
     }
 
     /**
      * Получить статистику по сделкам
      * 
-     * @param int|null $fromId Минимальный ID сделки (опционально)
+     * @param int $id ID сделки для начала выборки (по умолчанию 0)
+     * @param int $limit Максимальное количество записей (по умолчанию 200)
      * @return array Статистика по сделкам
      * @throws ApiException
      */
-    public function getDealsStats(?int $fromId = null): array
+    public function getDealsStats(int $id = 0, int $limit = 200): array
     {
-        $deals = $this->getDeals($fromId);
+        $deals = $this->getDeals($id, $limit);
         
         if (empty($deals)) {
             return [
@@ -182,23 +195,29 @@ class Deals
             ];
         }
         
-        $buyDeals = array_filter($deals, function($deal) { return $deal['type'] === 'buy'; });
-        $sellDeals = array_filter($deals, function($deal) { return $deal['type'] === 'sell'; });
+        $buyDeals = array_filter($deals, function($deal) { 
+            return isset($deal['type']) && $deal['type'] === 'buy'; 
+        });
+        $sellDeals = array_filter($deals, function($deal) { 
+            return isset($deal['type']) && $deal['type'] === 'sell'; 
+        });
         
         $prices = array_column($deals, 'price');
         $volumes = array_column($deals, 'volume');
         
         $totalValue = array_sum(array_map(function($deal) {
-            return $deal['price'] * $deal['volume'];
+            return ($deal['price'] ?? 0) * ($deal['volume'] ?? 0);
         }, $deals));
+        
+        $totalVolume = array_sum($volumes);
         
         return [
             'total_deals' => count($deals),
-            'total_volume' => array_sum($volumes),
+            'total_volume' => $totalVolume,
             'total_value' => $totalValue,
-            'avg_price' => $totalValue / array_sum($volumes),
-            'min_price' => min($prices),
-            'max_price' => max($prices),
+            'avg_price' => $totalVolume > 0 ? $totalValue / $totalVolume : 0,
+            'min_price' => !empty($prices) ? min($prices) : 0,
+            'max_price' => !empty($prices) ? max($prices) : 0,
             'buy_deals' => count($buyDeals),
             'sell_deals' => count($sellDeals),
             'buy_volume' => array_sum(array_column($buyDeals, 'volume')),
@@ -210,13 +229,13 @@ class Deals
      * Получить последние N сделок
      * 
      * @param int $limit Количество сделок
-     * @param int|null $fromId Минимальный ID сделки (опционально)
+     * @param int $id ID сделки для начала выборки (по умолчанию 0)
      * @return array Массив последних сделок
      * @throws ApiException
      */
-    public function getLastDeals(int $limit, ?int $fromId = null): array
+    public function getLastDeals(int $limit, int $id = 0): array
     {
-        $deals = $this->getDeals($fromId);
+        $deals = $this->getDeals($id, $limit);
         return array_slice($deals, 0, $limit);
     }
 
@@ -224,19 +243,22 @@ class Deals
      * Получить сделки, отсортированные по цене
      * 
      * @param string $order 'asc' для возрастания, 'desc' для убывания
-     * @param int|null $fromId Минимальный ID сделки (опционально)
+     * @param int $id ID сделки для начала выборки (по умолчанию 0)
+     * @param int $limit Максимальное количество записей (по умолчанию 200)
      * @return array Отсортированные сделки
      * @throws ApiException
      */
-    public function getDealsSortedByPrice(string $order = 'desc', ?int $fromId = null): array
+    public function getDealsSortedByPrice(string $order = 'desc', int $id = 0, int $limit = 200): array
     {
-        $deals = $this->getDeals($fromId);
+        $deals = $this->getDeals($id, $limit);
         
         usort($deals, function($a, $b) use ($order) {
+            $priceA = $a['price'] ?? 0;
+            $priceB = $b['price'] ?? 0;
             if ($order === 'asc') {
-                return $a['price'] <=> $b['price'];
+                return $priceA <=> $priceB;
             } else {
-                return $b['price'] <=> $a['price'];
+                return $priceB <=> $priceA;
             }
         });
         
@@ -247,19 +269,22 @@ class Deals
      * Получить сделки, отсортированные по объему
      * 
      * @param string $order 'asc' для возрастания, 'desc' для убывания
-     * @param int|null $fromId Минимальный ID сделки (опционально)
+     * @param int $id ID сделки для начала выборки (по умолчанию 0)
+     * @param int $limit Максимальное количество записей (по умолчанию 200)
      * @return array Отсортированные сделки
      * @throws ApiException
      */
-    public function getDealsSortedByVolume(string $order = 'desc', ?int $fromId = null): array
+    public function getDealsSortedByVolume(string $order = 'desc', int $id = 0, int $limit = 200): array
     {
-        $deals = $this->getDeals($fromId);
+        $deals = $this->getDeals($id, $limit);
         
         usort($deals, function($a, $b) use ($order) {
+            $volumeA = $a['volume'] ?? 0;
+            $volumeB = $b['volume'] ?? 0;
             if ($order === 'asc') {
-                return $a['volume'] <=> $b['volume'];
+                return $volumeA <=> $volumeB;
             } else {
-                return $b['volume'] <=> $a['volume'];
+                return $volumeB <=> $volumeA;
             }
         });
         
@@ -270,19 +295,22 @@ class Deals
      * Получить сделки, отсортированные по времени
      * 
      * @param string $order 'asc' для возрастания, 'desc' для убывания
-     * @param int|null $fromId Минимальный ID сделки (опционально)
+     * @param int $id ID сделки для начала выборки (по умолчанию 0)
+     * @param int $limit Максимальное количество записей (по умолчанию 200)
      * @return array Отсортированные сделки
      * @throws ApiException
      */
-    public function getDealsSortedByTime(string $order = 'desc', ?int $fromId = null): array
+    public function getDealsSortedByTime(string $order = 'desc', int $id = 0, int $limit = 200): array
     {
-        $deals = $this->getDeals($fromId);
+        $deals = $this->getDeals($id, $limit);
         
         usort($deals, function($a, $b) use ($order) {
+            $dateA = $a['date'] ?? 0;
+            $dateB = $b['date'] ?? 0;
             if ($order === 'asc') {
-                return $a['date'] <=> $b['date'];
+                return $dateA <=> $dateB;
             } else {
-                return $b['date'] <=> $a['date'];
+                return $dateB <=> $dateA;
             }
         });
         
@@ -290,21 +318,20 @@ class Deals
     }
 
     /**
-     * Найти сделки по группе
+     * Найти сделки по группе (group_id)
+     * Используется для оценки объёма крупных сделок, выходящих за пределы одного уровня цены
      * 
-     * @param int $groupId ID группы
-     * @param int|null $fromId Минимальный ID сделки (опционально)
+     * @param int $groupId ID корневой сделки (group_id)
+     * @param int $id ID сделки для начала выборки (по умолчанию 0)
+     * @param int $limit Максимальное количество записей (по умолчанию 200)
      * @return array Массив сделок группы
      * @throws ApiException
      */
-    public function getDealsByGroup(int $groupId, ?int $fromId = null): array
+    public function getDealsByGroup(int $groupId, int $id = 0, int $limit = 200): array
     {
-        $deals = $this->getDeals($fromId);
+        $deals = $this->getDeals($id, $limit);
         return array_filter($deals, function($deal) use ($groupId) {
-            return $deal['group_id'] === $groupId;
+            return isset($deal['group_id']) && $deal['group_id'] === $groupId;
         });
     }
 }
-
-
-
