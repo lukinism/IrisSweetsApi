@@ -21,7 +21,7 @@ class IrisSweets
     private HttpClient $client;
     private Config $config;
 
-    public function __construct(?string $botId = null, ?string $irisToken = null)
+    public function __construct(?string $botId = null, ?string $irisToken = null, ?string $proxy = null)
     {
         $this->config = Config::getInstance();
 
@@ -43,7 +43,10 @@ class IrisSweets
             'Accept' => 'application/json'
         ];
 
-        $this->client = new HttpClient($headers);
+        // Используем прокси из параметра конструктора или из конфигурации
+        $proxyToUse = $proxy ?? $this->config->getProxy();
+
+        $this->client = new HttpClient($headers, 30, false, $proxyToUse);
     }
 
     public function balance(): Balance
@@ -94,5 +97,22 @@ class IrisSweets
     public function trade(): Trade
     {
         return new Trade($this->client, $this->config->getBotId(), $this->config->getIrisToken(), $this->config->getBaseUrl());
+    }
+
+    /**
+     * Установить прокси для HTTP клиента
+     * @param string|null $proxy Формат: http://user:pass@host:port или socks5://user:pass@host:port или host:port
+     */
+    public function setProxy(?string $proxy): void
+    {
+        $this->client->setProxy($proxy);
+    }
+
+    /**
+     * Получить текущий прокси
+     */
+    public function getProxy(): ?string
+    {
+        return $this->client->getProxy();
     }
 }

@@ -102,6 +102,15 @@ class Config
     }
 
     /**
+     * Получить прокси (опционально)
+     */
+    public function getProxy(): ?string
+    {
+        $proxy = $this->get('PROXY', '');
+        return $proxy !== '' ? $proxy : null;
+    }
+
+    /**
      * Проверить, что все необходимые параметры установлены
      */
     public function validate(): bool

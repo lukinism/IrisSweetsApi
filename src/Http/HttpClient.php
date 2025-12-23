@@ -9,12 +9,14 @@ class HttpClient
     private array $headers = [];
     private int $timeout = 30;
     private bool $debug = false;
+    private ?string $proxy = null;
 
-    public function __construct(array $headers = [], int $timeout = 30, bool $debug = false)
+    public function __construct(array $headers = [], int $timeout = 30, bool $debug = false, ?string $proxy = null)
     {
         $this->headers = $headers;
         $this->timeout = $timeout;
         $this->debug = $debug;
+        $this->proxy = $proxy;
     }
 
     public function get(string $url, array $queryParams = []): string|false
@@ -28,7 +30,7 @@ class HttpClient
 
         $ch = curl_init();
 
-        curl_setopt_array($ch, [
+        $curlOptions = [
             CURLOPT_URL => $url,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_FOLLOWLOCATION => true,
@@ -36,13 +38,25 @@ class HttpClient
             CURLOPT_HTTPHEADER => $this->formatHeaders($this->headers),
             CURLOPT_SSL_VERIFYPEER => false,
             CURLOPT_HEADER => true, // Получаем заголовки для анализа HTTP статуса
-        ]);
+        ];
+
+        // Настройка прокси, если указан
+        if ($this->proxy !== null && $this->proxy !== '') {
+            $curlOptions[CURLOPT_PROXY] = $this->proxy;
+            
+            if ($this->debug) {
+                error_log("Using proxy: " . $this->proxy);
+            }
+        }
+
+        curl_setopt_array($ch, $curlOptions);
 
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $headerSize = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
 
         if (curl_errno($ch)) {
+            $errorCode = curl_errno($ch);
             $error = curl_error($ch);
             curl_close($ch);
             
@@ -52,7 +66,7 @@ class HttpClient
             
             throw new ApiException("Ошибка cURL: " . $error, 0, null, [
                 'error' => [
-                    'code' => curl_errno($ch),
+                    'code' => $errorCode,
                     'description' => $error
                 ]
             ]);
@@ -162,5 +176,22 @@ class HttpClient
     public function setHeaders(array $headers): void
     {
         $this->headers = $headers;
+    }
+
+    /**
+     * Установить прокси
+     * @param string|null $proxy Формат: http://user:pass@host:port или socks5://user:pass@host:port или host:port
+     */
+    public function setProxy(?string $proxy): void
+    {
+        $this->proxy = $proxy;
+    }
+
+    /**
+     * Получить текущий прокси
+     */
+    public function getProxy(): ?string
+    {
+        return $this->proxy;
     }
 }
