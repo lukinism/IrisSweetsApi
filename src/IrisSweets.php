@@ -13,6 +13,7 @@ use IrisSweetsApi\Api\IrisAgents;
 use IrisSweetsApi\Api\Exchange\Exchange;
 use IrisSweetsApi\Api\UserInfo;
 use IrisSweetsApi\Api\Trade;
+use IrisSweetsApi\Api\Nft\Nft;
 use IrisSweetsApi\Config;
 
 
@@ -97,6 +98,11 @@ class IrisSweets
     public function trade(): Trade
     {
         return new Trade($this->client, $this->config->getBotId(), $this->config->getIrisToken(), $this->config->getBaseUrl());
+    }
+
+    public function nft(): Nft
+    {
+        return new Nft($this->client, $this->config->getBotId(), $this->config->getIrisToken());
     }
 
     /**
