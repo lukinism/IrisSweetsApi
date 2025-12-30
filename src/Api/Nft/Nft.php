@@ -4,7 +4,7 @@ namespace IrisSweetsApi\Api\Nft;
 
 use IrisSweetsApi\Http\HttpClient;
 
-class щзNft
+class Nft
 {
     private HttpClient $httpClient;
     private string $botId;
