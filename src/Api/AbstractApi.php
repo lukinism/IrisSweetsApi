@@ -15,7 +15,7 @@ abstract class AbstractApi
     protected string $irisToken;
     protected RetryHandler $retryHandler;
 
-    public function __construct(HttpClient $httpClient, string $botId = '', string $irisToken = '', string $baseUrl = 'https://iris-tg.ru/api/v0.2/')
+    public function __construct(HttpClient $httpClient, string $botId = '', string $irisToken = '', string $baseUrl = 'https://iris-tg.ru/api/v0.5/')
     {
         $this->httpClient = $httpClient;
         $this->baseUrl = rtrim($baseUrl, '/');

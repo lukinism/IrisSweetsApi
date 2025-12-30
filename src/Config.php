@@ -94,11 +94,11 @@ class Config
     }
 
     /**
-     * Получить Base URL (фиксированный для v0.2)
+     * Получить Base URL (фиксированный для v0.5)
      */
     public function getBaseUrl(): string
     {
-        return 'https://iris-tg.ru/api/v0.2/';
+        return 'https://iris-tg.ru/api/v0.5/';
     }
 
     /**

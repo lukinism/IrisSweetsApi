@@ -10,7 +10,7 @@ class Updates
     private string $botId;
     private string $irisToken;
 
-    public function __construct(HttpClient $httpClient, string $botId = '', string $irisToken = '', string $baseUrl = 'https://iris-tg.ru/api/v0.2/')
+    public function __construct(HttpClient $httpClient, string $botId = '', string $irisToken = '')
     {
         $this->httpClient = $httpClient;
         $this->botId = $botId;
